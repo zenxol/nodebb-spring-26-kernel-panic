@@ -1,18 +1,1 @@
-{
-  "id": "nodebb-plugin-post-fields-logger",
-  "name": "Post Fields Logger",
-  "description": "A plugin that provides anonymous posting mode, hiding user identity from non-privileged users",
-  "url": "https://github.com/nodebb/nodebb-plugin-post-fields-logger",
-  "library": "./index.js",
-  "hooks": [
-    {
-      "hook": "filter:post.getFields",
-      "method": "onPostGetFields"
-    },
-    {
-      "hook": "filter:topics.addPostData",
-      "method": "onTopicsAddPostData"
-    }
-  ]
-}
-
+{"id":"nodebb-plugin-post-fields-logger","name":"Post Fields Logger","description":"A plugin that provides anonymous posting mode, hiding user identity from non-privileged users","url":"https://github.com/nodebb/nodebb-plugin-post-fields-logger","library":"./index.js","hooks":[{"hook":"filter:post.getFields","method":"onPostGetFields"},{"hook":"filter:topics.addPostData","method":"onTopicsAddPostData"},{"hook":"filter:topics.get","method":"onTopicsGet"},{"hook":"filter:teasers.get","method":"onTeasersGet"}]}

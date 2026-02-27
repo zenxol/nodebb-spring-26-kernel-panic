@@ -9,6 +9,15 @@ function getUser() {
 	return _user;
 }
 
+// Lazy-load database module for reading isAnonymous in topic/teaser hooks
+let _db = null;
+function getDb() {
+	if (!_db) {
+		_db = require.main.require('./src/database');
+	}
+	return _db;
+}
+
 const plugin = {};
 
 // Anonymous user placeholder data
@@ -39,6 +48,14 @@ plugin.ANONYMOUS_USER = ANONYMOUS_USER;
  */
 plugin._setUserModule = function (mockUser) {
 	_user = mockUser;
+};
+
+/**
+ * Allows injecting a mock database module for testing (used by onTopicsGet/onTeasersGet)
+ * @param {Object} mockDb - Mock database module with getObjects(keys, fields)
+ */
+plugin._setDb = function (mockDb) {
+	_db = mockDb;
 };
 
 /**
@@ -162,6 +179,115 @@ plugin.onTopicsAddPostData = async function (hookData) {
 			}
 			// For privileged users, keep the original user data
 			// but they can see isAnonymousPost flag in the UI if needed
+		}
+	});
+
+	return hookData;
+};
+
+/**
+ * Returns true if the raw isAnonymous value from DB indicates anonymous (true, "true", etc.)
+ * @param {*} value - Value from post hash
+ * @returns {boolean}
+ */
+function isAnonymousValue(value) {
+	if (value === true || value === 1) {
+		return true;
+	}
+	if (typeof value === 'string' && value.toLowerCase() === 'true') {
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Load isAnonymous for the given PIDs from the database (no hooks).
+ * @param {number[]} pids - Post IDs
+ * @returns {Promise<Map<number, boolean>>} Map of pid -> isAnonymous
+ */
+async function loadIsAnonymousByPids(pids) {
+	if (!pids || !pids.length) {
+		return new Map();
+	}
+	const db = getDb();
+	const keys = pids.filter(Boolean).map((pid) => `post:${pid}`);
+	const rows = await db.getObjects(keys, ['pid', 'isAnonymous']);
+	const map = new Map();
+	rows.forEach((row) => {
+		if (row && row.pid) {
+			map.set(parseInt(row.pid, 10), isAnonymousValue(row.isAnonymous));
+		}
+	});
+	return map;
+}
+
+/**
+ * Hook handler for filter:topics.get
+ * Masks topic.user and topic.teaser.user for anonymous main/teaser posts on the topic list.
+ */
+plugin.onTopicsGet = async function (hookData) {
+	const topics = hookData.topics;
+	const uid = hookData.uid;
+
+	if (!topics || !Array.isArray(topics) || !topics.length) {
+		return hookData;
+	}
+
+	const isPrivileged = await plugin.isCallerPrivileged(uid);
+	if (isPrivileged) {
+		return hookData;
+	}
+
+	const pids = [];
+	topics.forEach((topic) => {
+		if (topic && topic.mainPid) {
+			pids.push(topic.mainPid);
+		}
+		if (topic && topic.teaser && topic.teaser.pid) {
+			pids.push(topic.teaser.pid);
+		}
+	});
+
+	const anonByPid = await loadIsAnonymousByPids([...new Set(pids)]);
+
+	topics.forEach((topic) => {
+		if (!topic) {
+			return;
+		}
+		if (topic.mainPid && anonByPid.get(parseInt(topic.mainPid, 10))) {
+			topic.user = { ...ANONYMOUS_USER };
+		}
+		if (topic.teaser && topic.teaser.pid && anonByPid.get(parseInt(topic.teaser.pid, 10))) {
+			topic.teaser.user = { ...ANONYMOUS_USER };
+		}
+	});
+
+	return hookData;
+};
+
+/**
+ * Hook handler for filter:teasers.get
+ * Masks teaser.user for anonymous teaser posts (e.g. category last-post).
+ */
+plugin.onTeasersGet = async function (hookData) {
+	const teasers = hookData.teasers;
+	const uid = hookData.uid;
+
+	if (!teasers || !Array.isArray(teasers) || !teasers.length) {
+		return hookData;
+	}
+
+	const isPrivileged = await plugin.isCallerPrivileged(uid);
+	if (isPrivileged) {
+		return hookData;
+	}
+
+	const pids = teasers.filter((t) => t && t.pid).map((t) => t.pid);
+	const anonByPid = await loadIsAnonymousByPids(pids);
+
+	teasers.forEach((teaser) => {
+		if (teaser && teaser.pid && anonByPid.get(parseInt(teaser.pid, 10))) {
+			teaser.user = { ...ANONYMOUS_USER };
 		}
 	});
 
