@@ -1,0 +1,41 @@
+[33m234b72ec4f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfix-fuzzy-search-highlight[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: reset: moving to HEAD~3
+[33m32159e3ff4[m[33m ([m[1;31morigin/fix-fuzzy-search-highlight[m[33m)[m HEAD@{1}: pull --ff --recurse-submodules --progress origin: Merge made by the 'ort' strategy.
+[33m54de545cd5[m HEAD@{2}: commit: Fix: Dynamic fuzzy search word highlighting
+[33mc40e0a7e56[m[33m ([m[1;32mmain[m[33m)[m HEAD@{3}: reset: moving to HEAD~1
+[33mb223bd4b08[m HEAD@{4}: commit (amend): Fix: Dynamic fuzzy search word highlighting
+[33m82cc15c1c4[m HEAD@{5}: commit (amend): Fix: Dynamic fuzzy search word highlighting
+[33mee70322766[m HEAD@{6}: commit: Fix: Dynamic fuzzy search word highlighting
+[33mc40e0a7e56[m[33m ([m[1;32mmain[m[33m)[m HEAD@{7}: checkout: moving from main to fix-fuzzy-search-highlight
+[33mc40e0a7e56[m[33m ([m[1;32mmain[m[33m)[m HEAD@{8}: commit: Update fuzzy.js with redundancy removal
+[33m234b72ec4f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfix-fuzzy-search-highlight[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{9}: pull --ff --recurse-submodules --progress origin: Fast-forward
+[33ma32da0688f[m HEAD@{10}: checkout: moving from feat/fuzzy-search to main
+[33m18d77298b8[m[33m ([m[1;31morigin/feat/fuzzy-search[m[33m, [m[1;32mfeat/fuzzy-search[m[33m)[m HEAD@{11}: checkout: moving from main to feat/fuzzy-search
+[33ma32da0688f[m HEAD@{12}: checkout: moving from feat/fuzzy-search to main
+[33m18d77298b8[m[33m ([m[1;31morigin/feat/fuzzy-search[m[33m, [m[1;32mfeat/fuzzy-search[m[33m)[m HEAD@{13}: checkout: moving from main to feat/fuzzy-search
+[33ma32da0688f[m HEAD@{14}: checkout: moving from feat/fuzzy-search to main
+[33m18d77298b8[m[33m ([m[1;31morigin/feat/fuzzy-search[m[33m, [m[1;32mfeat/fuzzy-search[m[33m)[m HEAD@{15}: checkout: moving from main to feat/fuzzy-search
+[33ma32da0688f[m HEAD@{16}: pull --ff --recurse-submodules --progress origin: Fast-forward
+[33m6e47a28f72[m HEAD@{17}: checkout: moving from feat/fuzzy-search to main
+[33m18d77298b8[m[33m ([m[1;31morigin/feat/fuzzy-search[m[33m, [m[1;32mfeat/fuzzy-search[m[33m)[m HEAD@{18}: commit: CI: use URL without base path to fix 307 in API tests
+[33m7d43b4dd10[m HEAD@{19}: commit: Test: Update test/api.js
+[33me32c23e883[m HEAD@{20}: reset: moving to HEAD~2
+[33mcb08d36d1d[m HEAD@{21}: commit: test: fix fuzzy search unit tests
+[33m17a4c433f1[m HEAD@{22}: commit: fix(tests): include relative_path in API test request URLs
+[33me32c23e883[m HEAD@{23}: reset: moving to HEAD@{1}
+[33mc4899e233a[m HEAD@{24}: reset: moving to HEAD~1
+[33me32c23e883[m HEAD@{25}: commit: Test: Add unit tests for fuzzy search helpers (levenshtein, fuzzyMatches)
+[33mc4899e233a[m HEAD@{26}: commit: feat: add fuzzy search option with backend integration
+[33m6e47a28f72[m HEAD@{27}: reset: moving to HEAD~1
+[33m8a4dca9e81[m HEAD@{28}: commit: feat: implement fuzzy search using Fuse.js in search page
+[33m6e47a28f72[m HEAD@{29}: checkout: moving from main to feat/fuzzy-search
+[33m6e47a28f72[m HEAD@{30}: checkout: moving from search-contains-option to main
+[33m7087a94f67[m[33m ([m[1;31morigin/search-contains-option[m[33m, [m[1;32msearch-contains-option[m[33m)[m HEAD@{31}: commit: Adds match-contains field to en-GB search.json
+[33m0fd6c5ade6[m HEAD@{32}: commit: Rename “Contains” dropdown option to “Match contains”
+[33m3f94e1fa11[m HEAD@{33}: commit: Add “Contains” search mode with substring matching
+[33mf61ec6e3b4[m HEAD@{34}: checkout: moving from main to search-contains-option
+[33mf61ec6e3b4[m HEAD@{35}: checkout: moving from feature/search-substring to main
+[33mf61ec6e3b4[m HEAD@{36}: checkout: moving from main to feature/search-substring
+[33mf61ec6e3b4[m HEAD@{37}: checkout: moving from port/p1-anthony to main
+[33m92b59ffb6a[m[33m ([m[1;31morigin/port/p1-anthony[m[33m, [m[1;32mport/p1-anthony[m[33m)[m HEAD@{38}: cherry-pick: Refactor Categories.create: simplify conditionals to reduce complexity
+[33mf61ec6e3b4[m HEAD@{39}: checkout: moving from main to port/p1-anthony
+[33mf61ec6e3b4[m HEAD@{40}: clone: from https://github.com/CMU-313/nodebb-spring-26-kernel-panic.git
