@@ -847,5 +847,123 @@ describe('Post Fields Logger Plugin - Anonymous Mode', () => {
 			assert.strictEqual(plugin.ANONYMOUS_USER.username, 'Anonymous');
 		});
 	});
+
+	describe('onTopicsGet (topic list anonymous masking)', () => {
+		const anonMainPids = new Set([101]);
+		const anonTeaserPids = new Set([102]);
+
+		before(() => {
+			plugin._setDb({
+				getObjects: async (keys, fields) => keys.map((key) => {
+					const pid = parseInt(key.replace('post:', ''), 10);
+					const isAnonymous = anonMainPids.has(pid) || anonTeaserPids.has(pid);
+					return { pid, isAnonymous };
+				}),
+			});
+		});
+
+		after(() => {
+			plugin._setDb(null);
+		});
+
+		it('should mask topic.user and topic.teaser.user for anonymous posts when viewer is not privileged', async () => {
+			const hookData = {
+				uid: 100,
+				topics: [
+					{
+						mainPid: 101,
+						teaser: { pid: 102, user: { uid: 50, username: 'realuser', displayname: 'Real User', userslug: 'realuser' } },
+						user: { uid: 50, username: 'realuser', displayname: 'Real User', userslug: 'realuser' },
+					},
+				],
+			};
+			const result = await plugin.onTopicsGet(hookData);
+
+			assert.strictEqual(result.topics[0].user.username, 'Anonymous');
+			assert.strictEqual(result.topics[0].user.displayname, 'Anonymous');
+			assert.strictEqual(result.topics[0].teaser.user.username, 'Anonymous');
+			assert.strictEqual(result.topics[0].teaser.user.displayname, 'Anonymous');
+		});
+
+		it('should NOT mask topic.user or topic.teaser.user when viewer is privileged (admin)', async () => {
+			const hookData = {
+				uid: 5,
+				topics: [
+					{
+						mainPid: 101,
+						teaser: { pid: 102, user: { uid: 50, username: 'realuser', displayname: 'Real User' } },
+						user: { uid: 50, username: 'realuser', displayname: 'Real User' },
+					},
+				],
+			};
+			const result = await plugin.onTopicsGet(hookData);
+
+			assert.strictEqual(result.topics[0].user.username, 'realuser');
+			assert.strictEqual(result.topics[0].teaser.user.username, 'realuser');
+		});
+
+		it('should only mask main post user when main is anonymous and teaser is not', async () => {
+			anonMainPids.add(201);
+			// 202 is not in anonTeaserPids
+			const hookData = {
+				uid: 100,
+				topics: [
+					{
+						mainPid: 201,
+						teaser: { pid: 202, user: { uid: 60, username: 'otheruser', displayname: 'Other User' } },
+						user: { uid: 60, username: 'otheruser', displayname: 'Other User' },
+					},
+				],
+			};
+			const result = await plugin.onTopicsGet(hookData);
+
+			assert.strictEqual(result.topics[0].user.username, 'Anonymous');
+			// Teaser post 202 not in anon set - so user should stay
+			assert.strictEqual(result.topics[0].teaser.user.username, 'otheruser');
+			anonMainPids.delete(201);
+		});
+	});
+
+	describe('onTeasersGet (teaser anonymous masking)', () => {
+		const anonPids = new Set([301]);
+
+		before(() => {
+			plugin._setDb({
+				getObjects: async (keys, fields) => keys.map((key) => {
+					const pid = parseInt(key.replace('post:', ''), 10);
+					return { pid, isAnonymous: anonPids.has(pid) };
+				}),
+			});
+		});
+
+		after(() => {
+			plugin._setDb(null);
+		});
+
+		it('should mask teaser.user for anonymous teaser when viewer is not privileged', async () => {
+			const hookData = {
+				uid: 100,
+				teasers: [
+					{ pid: 301, user: { uid: 70, username: 'teaseruser', displayname: 'Teaser User', userslug: 'teaseruser' } },
+				],
+			};
+			const result = await plugin.onTeasersGet(hookData);
+
+			assert.strictEqual(result.teasers[0].user.username, 'Anonymous');
+			assert.strictEqual(result.teasers[0].user.displayname, 'Anonymous');
+		});
+
+		it('should NOT mask teaser.user when viewer is privileged', async () => {
+			const hookData = {
+				uid: 5,
+				teasers: [
+					{ pid: 301, user: { uid: 70, username: 'teaseruser', displayname: 'Teaser User' } },
+				],
+			};
+			const result = await plugin.onTeasersGet(hookData);
+
+			assert.strictEqual(result.teasers[0].user.username, 'teaseruser');
+		});
+	});
 });
 
