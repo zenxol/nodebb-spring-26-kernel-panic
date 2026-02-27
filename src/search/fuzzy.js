@@ -18,7 +18,6 @@ function levenshtein(a, b) {
 }
 
 function maxFuzzyEdits(tokenLength) {
-	if (tokenLength <= 2) return 1;
 	if (tokenLength <= 5) return 1;
 	if (tokenLength <= 9) return 2;
 	return 3;

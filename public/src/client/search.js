@@ -23,9 +23,11 @@ define('forum/search', [
 		});
 
 		const searchQuery = $('#results').attr('data-search-query');
+		const matchWords = $('#results').attr('data-match-words') || 'all';
 		searchModule.highlightMatches(
 			searchQuery,
-			$('.search-results .content p, .search-results .topic-title')
+			$('.search-results .content p, .search-results .topic-title'),
+			matchWords
 		);
 
 		$('#advanced-search form').off('submit').on('submit', function (e) {

@@ -6,7 +6,7 @@
 {{{ end }}}
 {{{ end }}}
 
-<div id="results" class="search-results" data-search-query="{search_query}">
+<div id="results" class="search-results" data-search-query="{search_query}" data-match-words="{matchWords}">
 	{{{ if showAsPosts }}}
 	{{{ if posts.length }}}
 	<!-- IMPORT partials/posts_list.tpl -->

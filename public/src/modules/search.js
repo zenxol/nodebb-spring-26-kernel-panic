@@ -175,7 +175,7 @@ define('search', [
 						const highlightEls = quickSearchResults.find(
 							'.quick-search-results .quick-search-title, .quick-search-results .snippet'
 						);
-						Search.highlightMatches(options.searchOptions.term, highlightEls);
+						Search.highlightMatches(options.searchOptions.term, highlightEls, options.searchOptions.matchWords);
 						hooks.fire('action:search.quick.complete', {
 							data: data,
 							options: options,
@@ -314,16 +314,93 @@ define('search', [
 		}
 	};
 
-	Search.highlightMatches = function (searchQuery, els) {
+	function maxFuzzyEdits(len) {
+		if (len <= 5) return 1;
+		if (len <= 9) return 2;
+		return 3;
+	}
+
+	function getFuzzyMatchRanges(query, text) {
+		const q = String(query || '').toLowerCase();
+		const t = String(text || '').toLowerCase();
+		if (!q.length || !t.length) return [];
+
+		const m = q.length;
+		const n = t.length;
+		const d = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+		for (let i = 0; i <= m; i++) d[i][0] = i;
+		for (let j = 0; j <= n; j++) d[0][j] = j;
+		for (let i = 1; i <= m; i++) {
+			for (let j = 1; j <= n; j++) {
+				const cost = q[i - 1] === t[j - 1] ? 0 : 1;
+				d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+			}
+		}
+
+		const dist = d[m][n];
+		const allowed = maxFuzzyEdits(m);
+		if (dist > allowed) return [];
+
+		if (m > n) {
+			return [[0, n]];
+		}
+
+		const matchedIndices = [];
+		let i = m;
+		let j = n;
+		while (i > 0 && j > 0) {
+			const cost = q[i - 1] === t[j - 1] ? 0 : 1;
+			const diag = d[i - 1][j - 1] + cost;
+			const up = d[i - 1][j] + 1;
+			const left = d[i][j - 1] + 1;
+			const min = Math.min(diag, up, left);
+
+			if (min === diag) {
+				if (cost === 0) matchedIndices.push(j - 1);
+				i--;
+				j--;
+			} else if (min === up) {
+				i--;
+			} else {
+				j--;
+			}
+		}
+
+		matchedIndices.sort((a, b) => a - b);
+		const ranges = [];
+		for (let k = 0; k < matchedIndices.length; k++) {
+			if (ranges.length && matchedIndices[k] === ranges[ranges.length - 1][1]) {
+				ranges[ranges.length - 1][1]++;
+			} else {
+				ranges.push([matchedIndices[k], matchedIndices[k] + 1]);
+			}
+		}
+		return ranges;
+	}
+
+	function highlightFuzzyInText(query, text) {
+		const ranges = getFuzzyMatchRanges(query, text);
+		if (!ranges.length) return text;
+
+		let result = '';
+		let lastEnd = 0;
+		for (let i = 0; i < ranges.length; i++) {
+			const start = ranges[i][0];
+			const end = ranges[i][1];
+			result += text.slice(lastEnd, start);
+			result += '<span class="search-match text-decoration-underline">' + text.slice(start, end) + '</span>';
+			lastEnd = end;
+		}
+		result += text.slice(lastEnd);
+		return result;
+	}
+
+	Search.highlightMatches = function (searchQuery, els, matchWords) {
 		if (!searchQuery || !els.length) {
 			return;
 		}
 		searchQuery = utils.escapeHTML(searchQuery.replace(/^"/, '').replace(/"$/, '').trim());
-		const regexStr = searchQuery.split(' ')
-			.filter(word => word.length > 1)
-			.map(function (word) { return utils.escapeRegexChars(word); })
-			.join('|');
-		const regex = new RegExp('(' + regexStr + ')', 'gi');
+		const isFuzzy = matchWords === 'fuzzy';
 
 		els.each(function () {
 			const result = $(this);
@@ -334,9 +411,33 @@ define('search', [
 				nested.push($('<div></div>').append($(this)));
 			});
 
-			result.html(result.html().replace(regex, function (match, p1) {
-				return '<strong class="search-match fw-bold text-decoration-underline">' + p1 + '</strong>';
-			}));
+			let html = result.html();
+			if (isFuzzy) {
+				const queryTokens = searchQuery.split(/\s+/).filter(function (t) { return t.length > 1; });
+				if (queryTokens.length) {
+					html = html.replace(/[a-zA-Z\u00C0-\u024F]+/g, function (word) {
+						for (let i = 0; i < queryTokens.length; i++) {
+							const ranges = getFuzzyMatchRanges(queryTokens[i], word);
+							if (ranges.length > 0) {
+								return highlightFuzzyInText(queryTokens[i], word);
+							}
+						}
+						return word;
+					});
+				}
+			} else {
+				const regexStr = searchQuery.split(' ')
+					.filter(function (word) { return word.length > 1; })
+					.map(function (word) { return utils.escapeRegexChars(word); })
+					.join('|');
+				if (regexStr) {
+					const regex = new RegExp('(' + regexStr + ')', 'gi');
+					html = html.replace(regex, function (match, p1) {
+						return '<strong class="search-match fw-bold text-decoration-underline">' + p1 + '</strong>';
+					});
+				}
+			}
+			result.html(html);
 
 			nested.forEach(function (nestedEl, i) {
 				result.html(result.html().replace('<!-- ' + i + ' -->', function () {

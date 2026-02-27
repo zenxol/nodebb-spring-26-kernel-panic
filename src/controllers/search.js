@@ -139,6 +139,7 @@ searchController.search = async function (req, res, next) {
 	searchData.tagFilterSelected = getSelectedTags(data.hasTags);
 	searchData.searchDefaultSortBy = meta.config.searchDefaultSortBy || '';
 	searchData.searchDefaultIn = meta.config.searchDefaultIn || 'titlesposts';
+	searchData.matchWords = data.matchWords || 'all';
 	searchData.privileges = userPrivileges;
 
 	res.render('search', searchData);
