@@ -71,31 +71,44 @@
 
 
 
-## Listing Responders to a Post
+## Listing Respondents to a Post
 
 - **Feature:** A list containing all the users that responded to a post.
-- **Summary:** A short paragraph explaining what the feature does and why it was added.
-- **How it works:** Technical explanation of the design and flow (components touched, data flow, important edge cases).
-- **How to test:** Step-by-step manual test instructions and any automated test commands.
-- **Tests:** Link(s) to the actual automated test files that cover this feature.
-- **Why tests are sufficient:** Short rationale describing what the tests cover and any remaining gaps.
+- **Summary:** When someone views a topic page, a small widget in the sidebar lists all unique users who have posted in that topic (the original author and anyone who replied). Each entry shows the user’s avatar and username, as well as links to their profile. This should allow the instructor to, for example, be able to grade the responses quickly.
+- **How it works:** 
+	- **Backend (data storage)**: NodeBB already keeps track of participation using a Redis sorted set:
 
-  
-## Fuzzy Search Testing
+		- **Key:** `tid:{tid}:posters` (This set stores user IDs (UIDs) and a score that represents how many posts they have in the topic.)
+		- When a post is created (in `src/topics/posts.js`): NodeBB increments the poster’s score using `db.sortedSetIncrBy`.
+		- When a post is deleted: NodeBB decrements the score. If the score becomes 0 or below, that UID is removed from the set. Thus the sorted set always represents the set of users who currently have at least one post in the topic.
 
-- **Feature:** The "Fuzzy match" search dropdown option supports fuzzy search.
-- **Summary:** "Fuzzy match" enables users to input search queries and receive post results with low edit distances (word similarity). It supports input queries that with insertions, deletions, and substitutions. Relevant posts with high word similarity (minimal edit distance) appear. This feature was added to provide users with searching flexibility. Users can have typos into their search queries and still receive relevant post results.
-- **How it works:** The fuzzy search feature was mainly implemented in public/src/modules/search.js. getLevenshteinDistance(a, b) computes the minimum edit distance (insertions, deletions, substitutions) between two strings using dynamic programming. fuzzyMatches(query, text) tokenizes both the query and the text, then checks if any query token is within an acceptable edit distance of any text token. The tolerance threshold scales with token length via maxFuzzyEdits(len): <= 5 chars for 1 edit, <= 9 chars for 2 edits, 10+ chars for 3 edits. There is also substring matching fallback. getFuzzyMatchRanges(query, text) traces back through the Levenshtein dynamic programming matrix to find which character positions in text align with the query, returning [start, end] ranges. highlightFuzzyInText() wraps these ranges for underlining relevant characters. 
-- **Data Flow:**User selects "Fuzzy match" from the search dropdown. matchWords=fuzzy is sent as a query parameter. src/controllers/search.js passes it into template data. public/src/client/search.js reads it from the data-match-words attribute on the results container and calls Search.highlightMatches(query, els, 'fuzzy'), which uses the fuzzy highlighting path instead of the exact-regex path.
-- **Edge Cases:**Empty queries return no matches. Single-character tokens are skipped during highlighting. 
+	- **Backend (data retrieval)**: `Topics.getUids(tid)` in `src/topics/user.js` reads from the sorted set and returns all UIDs with at least one post ordered by post count (highest first).
+
+		- It uses `db.getSortedSetRevRangeByScore` to do this. 
+		- Then the topic controller (`src/controllers/topics.js`, around lines 140–143):
+			1. calls `topics.getUids(tid)`
+			2. loads basic user info using `user.getUsersFields` (fields: `uid`, `username`, `userslug`, `picture`)
+			3. attaches the result to the topic response as `topicData.respondents`
+
+	- **Frontend (sidebar display)**: A template partial renders the list in the topic sidebar `templates/partials/topic/respondents.tpl`
+
+		- It shows a "Respondents" header (translated using `[[topic:respondents]]`), loops through the respondents array, and renders each user with 24px avatar, username, and link to their profile.
+
 - **How to test:** 
-	1) Start NodeBB locally (./nodebb dev)
-	2) Create a few posts with known words (e.g., "hello world", "test post")
-	3) Go to the search page, select "Fuzzy match" from the match-words dropdown
-	4) Search "helo" → should return the "hello" post, with "hello" underlined (shared characters highlighted)
-	5) Search "tests" → should return the "test" post
-	6) Search "jello" → should not return the "hello" post
-	7) Switch to "Match all words" → confirm highlighting reverts to exact bold+underline behavior
-	8) Automated tests can be run via `npx mocha test/search-fuzzy.js`
-- **Tests:** test/fuzzy-search.js
-- **Test Sufficiency:** The unit tests test the two core functions getLevenshteinDistance and fuzzyMatches, which contain all fuzzy matching logic. The unit tests cover correctness of edit distance, acceptance of small typos, rejection of unrelated words beyond threshold edit distance, edge cases, and substring matching fallback. 
+	- Automated tests: refer to the bulletpoint below
+	- Manual checks
+		1. Create a new topic as User A and view the sidebar -> User A should appear in the respondents list.
+		2. Reply as User B and User C, refresh the page -> All three users should appear (A, B, C).
+		3. Reply again as User B, refresh -> User B should still appear only once (no duplicates).
+		4. Click a username -> It should go to that user’s profile page.
+- **Tests:**
+	- Run the respondents unit tests: `npx mocha test/topics-respondents.js`
+	- Test file: [test/topics-respondents.js](test/topics-respondents.js)
+- **Why tests are sufficient:** The automated tests focus on the backend pipeline that generates the respondents list.
+
+	- **Creator inclusion:** confirms the topic creator is included immediately.
+	- **Reply inclusion:** confirms repliers get added after posting.
+	- **No duplicates:** confirms the same user replying multiple times still shows up once.
+	- **Correct count:** confirms the expected number of unique respondents is returned.
+	- **User data included:** confirms the returned user objects include at least `uid` and `username`.
+	- **Username accuracy:** confirms the usernames match the correct UIDs.
