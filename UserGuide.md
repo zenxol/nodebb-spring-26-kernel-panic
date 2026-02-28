@@ -1,16 +1,3 @@
-# Feature Template
-
-Use this template when describing a new or modified feature so reviewers and testers have a consistent checklist.
-
-## Template
-
-- **Feature:** A one-line description of the feature.
-- **Summary:** A short paragraph explaining what the feature does and why it was added.
-- **How it works:** Technical explanation of the design and flow (components touched, data flow, important edge cases).
-- **How to test:** Step-by-step manual test instructions and any automated test commands.
-- **Tests:** Link(s) to the actual automated test files that cover this feature.
-- **Why tests are sufficient:** Short rationale describing what the tests cover and any remaining gaps.
-
 ## Anonymous Posts
 
 - **Feature:** Per-post anonymous posting that hides the author's identity from regular users.
