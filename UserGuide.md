@@ -92,3 +92,23 @@ Use this template when describing a new or modified feature so reviewers and tes
 - **How to test:** Step-by-step manual test instructions and any automated test commands.
 - **Tests:** Link(s) to the actual automated test files that cover this feature.
 - **Why tests are sufficient:** Short rationale describing what the tests cover and any remaining gaps.
+
+  
+## Fuzzy Search Testing
+
+- **Feature:** The "Fuzzy match" search dropdown option supports fuzzy search.
+- **Summary:** "Fuzzy match" enables users to input search queries and receive post results with low edit distances (word similarity). It supports input queries that with insertions, deletions, and substitutions. Relevant posts with high word similarity (minimal edit distance) appear. This feature was added to provide users with searching flexibility. Users can have typos into their search queries and still receive relevant post results.
+- **How it works:** The fuzzy search feature was mainly implemented in public/src/modules/search.js. getLevenshteinDistance(a, b) computes the minimum edit distance (insertions, deletions, substitutions) between two strings using dynamic programming. fuzzyMatches(query, text) tokenizes both the query and the text, then checks if any query token is within an acceptable edit distance of any text token. The tolerance threshold scales with token length via maxFuzzyEdits(len): <= 5 chars for 1 edit, <= 9 chars for 2 edits, 10+ chars for 3 edits. There is also substring matching fallback. getFuzzyMatchRanges(query, text) traces back through the Levenshtein dynamic programming matrix to find which character positions in text align with the query, returning [start, end] ranges. highlightFuzzyInText() wraps these ranges for underlining relevant characters. 
+- **Data Flow:**User selects "Fuzzy match" from the search dropdown. matchWords=fuzzy is sent as a query parameter. src/controllers/search.js passes it into template data. public/src/client/search.js reads it from the data-match-words attribute on the results container and calls Search.highlightMatches(query, els, 'fuzzy'), which uses the fuzzy highlighting path instead of the exact-regex path.
+- **Edge Cases:**Empty queries return no matches. Single-character tokens are skipped during highlighting. 
+- **How to test:** 
+	1) Start NodeBB locally (./nodebb dev)
+	2) Create a few posts with known words (e.g., "hello world", "test post")
+	3) Go to the search page, select "Fuzzy match" from the match-words dropdown
+	4) Search "helo" → should return the "hello" post, with "hello" underlined (shared characters highlighted)
+	5) Search "tests" → should return the "test" post
+	6) Search "jello" → should not return the "hello" post
+	7) Switch to "Match all words" → confirm highlighting reverts to exact bold+underline behavior
+	8) Automated tests can be run via `npx mocha test/search-fuzzy.js`
+- **Tests:** test/fuzzy-search.js
+- **Test Sufficiency:** The unit tests test the two core functions getLevenshteinDistance and fuzzyMatches, which contain all fuzzy matching logic. The unit tests cover correctness of edit distance, acceptance of small typos, rejection of unrelated words beyond threshold edit distance, edge cases, and substring matching fallback. 
