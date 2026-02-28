@@ -216,6 +216,36 @@ get:
                     type: array
                     items:
                       $ref: ../../components/schemas/CrosspostObject.yaml#/CrosspostObject
+                  respondents:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        uid:
+                          type: number
+                          description: A user identifier
+                        username:
+                          type: string
+                          description: A unique alias of the user
+                        userslug:
+                          type: string
+                          description: URL-safe version of the username
+                        picture:
+                          type: string
+                          nullable: true
+                          description: URL to the user's profile picture
+                        displayname:
+                          type: string
+                          description: The user's display name
+                        icon:bgColor:
+                          type: string
+                          description: Background colour for the default user icon
+                        icon:text:
+                          type: string
+                          description: Initials shown in the default user icon
+                        isLocal:
+                          type: boolean
+                          description: Whether the user belongs to the local installation
               - type: object
                 description: Optional properties that may or may not be present (except for `tid`, which is always present, and is only here as a hack to pass validation)
                 properties:
