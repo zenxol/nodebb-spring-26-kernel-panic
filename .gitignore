@@ -78,3 +78,6 @@ retire-report.json
 dump.rdb
 .archiver_shadow/
 .snapshots/
+
+## ts-standard output
+ts_standard_output.txt
