@@ -14,7 +14,8 @@
         "lint": "eslint --cache ./nodebb .",
         "test": "nyc --reporter=html --reporter=text-summary mocha",
         "coverage": "nyc report --reporter=text-lcov > ./coverage/lcov.info",
-        "coveralls": "nyc report --reporter=text-lcov | coveralls && rm -r coverage"
+        "coveralls": "nyc report --reporter=text-lcov | coveralls && rm -r coverage",
+        "retire": "retire --severity critical"
     },
     "nyc": {
         "exclude": [
@@ -183,6 +184,7 @@
         "mockdate": "3.0.5",
         "nyc": "17.1.0",
         "reflect-metadata": "^0.2.2",
+        "retire": "5.4.2",
         "smtp-server": "3.18.0"
     },
     "optionalDependencies": {

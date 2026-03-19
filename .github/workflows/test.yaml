@@ -85,6 +85,9 @@ jobs:
       - name: Node tests
         run: npm test
 
+      - name: Run Retire
+        run: npm run retire
+
       - name: Extract coverage info
         run: npm run coverage
 
