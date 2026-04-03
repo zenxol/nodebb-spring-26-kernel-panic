@@ -1,0 +1,10 @@
+{
+  "id": "nodebb-plugin-translator-service",
+  "name": "Translator microservice",
+  "description": "Translates non-English post content via the FastAPI translator + Ollama service",
+  "library": "./library.js",
+  "hooks": [
+    { "hook": "filter:post.create", "method": "onPostCreate" },
+    { "hook": "filter:post.edit", "method": "onPostEdit" }
+  ]
+}

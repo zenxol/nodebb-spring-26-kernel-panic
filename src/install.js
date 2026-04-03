@@ -536,6 +536,7 @@ async function enableDefaultPlugins() {
 		'nodebb-plugin-emoji-android',
 		'nodebb-plugin-post-fields-logger',
 		'nodebb-plugin-composer-latex',
+		'nodebb-plugin-translator-service',
 	];
 	let customDefaults = nconf.get('defaultplugins') || nconf.get('defaultPlugins');
 

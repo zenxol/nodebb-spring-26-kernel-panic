@@ -108,6 +108,7 @@
         "nodebb-plugin-mentions": "4.8.5",
         "nodebb-plugin-post-fields-logger": "file:vendor/nodebb-plugin-post-fields-logger",
         "nodebb-plugin-composer-latex": "file:vendor/nodebb-plugin-composer-latex",
+        "nodebb-plugin-translator-service": "file:vendor/nodebb-plugin-translator-service",
         "nodebb-plugin-spam-be-gone": "2.3.2",
         "nodebb-plugin-web-push": "0.7.6",
         "nodebb-rewards-essentials": "1.0.2",

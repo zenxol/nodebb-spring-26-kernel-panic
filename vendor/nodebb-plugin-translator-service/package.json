@@ -1,0 +1,11 @@
+{
+  "name": "nodebb-plugin-translator-service",
+  "version": "1.0.0",
+  "description": "Calls the team translator microservice before saving posts",
+  "main": "library.js",
+  "keywords": ["nodebb", "plugin", "translator", "fastapi"],
+  "license": "MIT",
+  "nbbpm": {
+    "compatibility": "^4.0.0"
+  }
+}
